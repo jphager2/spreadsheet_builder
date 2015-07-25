@@ -1,0 +1,9 @@
+.my-cool-table th {
+  background-color: black;
+  color: white;
+}
+
+.my-cool-table tbody tr:nth-child(even) td {
+  background-color: #888;
+  color: white;
+}

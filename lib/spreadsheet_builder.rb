@@ -134,7 +134,11 @@ class SpreadsheetBuilder
 
   def self._reset_css_parser
     parser = CssParser::Parser.new
-    parser.load_uri!("file://#{Dir.pwd}/test.css")
+    # TODO load these files from a config
+    # parser.load_uri!("file://#{Dir.pwd}/test.css")
+    # TODO or even better parse the html doc for spreadsheet links 
+    # and load those
+    parser.load_uri!("file://#{Dir.pwd}/test2.css")
 
     accepted_keys = %w{ color background-color font-size font-weight text-align border border-width border-style border-color }
     dirs = %w{ top bottom left right }
@@ -182,7 +186,7 @@ class SpreadsheetBuilder
   def self._klass_node_for_node(node)
     name     = node.name
     root     = node.ancestors.last
-    siblings = node.parent.children
+    siblings = node.parent.element_children
 
     index         = siblings.index(node) + 1
     first_of_kind = root.css(name).first == node
@@ -230,8 +234,10 @@ class SpreadsheetBuilder
     rules
   end
 
-  def self.from_html(html, force = false)
-    _reset_css_cache if force
+  def self.from_html(html, force_level = :none)
+    _reset_css_parser if force_level == :parser
+    _reset_css_cache  if force_level == :cache
+    _reset_css_rules  if force_level == :rules
 
     # need to check for attributes colspan and row span
     cells       = [] 
