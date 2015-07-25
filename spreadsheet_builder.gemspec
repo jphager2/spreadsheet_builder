@@ -20,4 +20,5 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'nokogiri'
   s.add_runtime_dependency 'spreadsheet'
   s.add_runtime_dependency 'css_parser'
+  s.add_runtime_dependency 'shade'
 end
