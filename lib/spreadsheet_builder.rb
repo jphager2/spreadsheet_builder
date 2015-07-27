@@ -13,9 +13,19 @@ class SpreadsheetBuilder
   #TEXT_CENTER = { horizontal_align: :center }
   #
 
+  Rgb = Spreadsheet::Excel::Rgb
+
+  CUSTOM_PALETTE = {
+    :xls_color_0 => Rgb.new(0,0,0),
+    :xls_color_1 => Rgb.new(255,255,255),
+    :xls_color_2 => Rgb.new(204,204,204),
+    :xls_color_3 => Rgb.new(249,249,249)
+  }
+
   PALETTE = Shade::Palette.new do |p| 
-    Spreadsheet::Excel::Rgb.class_variable_get(:@@RGB_MAP).each do |name, value|
-      p.add("##{value.to_s(16).ljust(6, "0")}", name.to_s)
+    Rgb.class_variable_get(:@@RGB_MAP).merge(CUSTOM_PALETTE).each do 
+      |name, value|
+      p.add("##{value.to_i.to_s(16).ljust(6, "0")}", name.to_s)
     end
   end
 
@@ -96,17 +106,21 @@ class SpreadsheetBuilder
     if _css_cache[klass]
       format = _css_cache[klass]
     else
-      rules = _find_rules(klass).sort_by { |specificity,_| specificity }
-      declarations = rules.map { |_,rules| 
-        rules.inject({}) { |dec, r| 
-          dec.merge(r.instance_variable_get(:@declarations))
-        }
-      }.inject({},&:merge)
+      declarations = _declarations_from_klass_tree(klass)
       format = _format_for_declarations(declarations)
       _css_cache[klass] = format
     end
 
     format || {}
+  end
+
+  def self._declarations_from_klass_tree(klass)
+    rules = _find_rules(klass).sort_by { |specificity,_| specificity }
+    declarations = rules.map { |_,rules| 
+      rules.inject({}) { |dec, r| 
+        dec.merge(r.instance_variable_get(:@declarations))
+      }
+    }.inject({},&:merge)
   end
 
   def self._css_rules
@@ -135,10 +149,10 @@ class SpreadsheetBuilder
   def self._reset_css_parser
     parser = CssParser::Parser.new
     # TODO load these files from a config
-    # parser.load_uri!("file://#{Dir.pwd}/test.css")
+    parser.load_uri!("file://#{Dir.pwd}/test.css")
     # TODO or even better parse the html doc for spreadsheet links 
     # and load those
-    parser.load_uri!("file://#{Dir.pwd}/test2.css")
+    #parser.load_uri!("file://#{Dir.pwd}/test2.css")
 
     accepted_keys = %w{ color background-color font-size font-weight text-align border border-width border-style border-color }
     dirs = %w{ top bottom left right }
@@ -354,7 +368,12 @@ class SpreadsheetBuilder
   def to_spreadsheet
     @sheets << 'Sheet 1' if @sheets.empty?
 
-    @book        = Spreadsheet::Workbook.new
+    @book = Spreadsheet::Workbook.new
+    
+    CUSTOM_PALETTE.each do |name, color|
+      @book.set_custom_color(name, color.r, color.g, color.b)
+    end
+
     @book_sheets = @sheets.map { |n| book.create_worksheet(name: n) }
     @book_sheets.each_with_index do |sheet, index|
       build_sheet(sheet, index)
