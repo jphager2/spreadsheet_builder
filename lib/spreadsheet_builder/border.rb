@@ -148,7 +148,7 @@ class Border
   def translate_color(val)
     return unless val
 
-    SpreadsheetBuilder._color_from_input(val)
+    SpreadsheetBuilder::Palette._color_from_input(val)
   end
 
   def translate_style(val)
