@@ -41,7 +41,7 @@ module SpreadsheetBuilder
     private
     def accepted_keys
       # TODO Keep these in a config
-      keys = %w{ color background-color font-size font-weight text-align border border-width border-style border-color height width }
+      keys = %w{ color background-color font-size font-weight vertical-align text-align border border-width border-style border-color height width }
       dirs = %w{ top bottom left right }
       types = %w{ width style color }
       dirs.each do |dir|
@@ -98,6 +98,9 @@ module SpreadsheetBuilder
         found = rule.find_selector(tree)
         rules_found[found.length] << rule if found
       end
+    end
+
+    def reset_none
     end
 
     def reset_rules(parser = @parser)

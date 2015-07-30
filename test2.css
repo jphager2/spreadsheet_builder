@@ -1,16 +1,13 @@
 .my-cool-table {
-  width: 200px;
-  height: 300px;
-  font-size: 200%;
-}
-
-.my-cool-table tr {
-  width: 800px;
+  font-size: 100%;
 }
 
 .my-cool-table th {
   background-color: black;
   color: white;
+  height: 50px;
+  font-size: 20px;
+  vertical-align: top;
 }
 
 .my-cool-table tbody tr:nth-child(even) td {

@@ -2,10 +2,11 @@ module SpreadsheetBuilder
   TRANSLATIONS = {}
   TRANSLATIONS["text-align"] = Proc.new { |val| 
     allowed = %w{ left center right justify }
-
-    if allowed.include?(val)
-      { horizontal_align: val.to_sym }
-    end
+    { horizontal_align: val.to_sym } if allowed.include?(val)
+  }
+  TRANSLATIONS["vertical-align"] = Proc.new { |val|
+    allowed = %{ top middle bottom }
+    { vertical_align: val.to_sym } if allowed.include?(val)
   }
   TRANSLATIONS["color"] = Proc.new { |val| 
     { color: Palette._color_from_input(val) }
