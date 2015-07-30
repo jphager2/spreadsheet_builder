@@ -19,7 +19,7 @@ module SpreadsheetBuilder
     private
     def accepted_keys
       # TODO Keep these in a config
-      keys = %w{ color background-color font-size font-weight text-align border border-width border-style border-color }
+      keys = %w{ color background-color font-size font-weight text-align border border-width border-style border-color height width }
       dirs = %w{ top bottom left right }
       types = %w{ width style color }
       dirs.each do |dir|
@@ -115,7 +115,7 @@ module SpreadsheetBuilder
     def reset_parser
       parser = CssParser::Parser.new
       # TODO load these files from a config
-      parser.load_uri!("file://#{Dir.pwd}/test.css")
+      parser.load_uri!("file://#{Dir.pwd}/test2.css")
       # TODO or even better parse the html doc for spreadsheet links 
       # and load those
       #parser.load_uri!("file://#{Dir.pwd}/test2.css")

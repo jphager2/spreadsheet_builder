@@ -6,4 +6,9 @@
 .my-cool-table tbody tr:nth-child(even) td {
   background-color: #ccc;
   color: white;
+  height: 100px;
+}
+
+.my-cool-table tbody tr td:nth-child(even) {
+  width: 200px
 }
