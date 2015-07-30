@@ -159,11 +159,31 @@ module SpreadsheetBuilder
       end
     end
 
+    def handle_height_or_width_format(sheet, cells, index)
+      sheet_cells(index).each do |(_, row, col), cell|
+        if cell[:format].keys.include?(:height)
+          current = @row_heights[index][row]
+          if !current || current < Integer(cell[:format][:height])
+            @row_heights[index][row] = Integer(cell[:format][:height])
+          end
+          cell[:format].delete(:height)
+        end
+        if cell[:format].keys.include?(:width)
+          current = @col_widths[index][col]
+          if !current || current < Integer(cell[:format][:width])
+            @col_widths[index][col] = Integer(cell[:format][:width])
+          end
+          cell[:format].delete(:width)
+        end
+      end
+    end
+
     def build_sheet(sheet, index)
       cells = sheet_cells(index)
 
       unless cells.empty?
         add_each_row(sheet, cells, index)
+        handle_height_or_width_format(sheet, cells, index)
         format_each_row(sheet, cells, index)
         merge_cells(sheet, index)
         set_row_heights(sheet, index)

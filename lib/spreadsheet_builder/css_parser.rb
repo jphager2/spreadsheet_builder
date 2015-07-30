@@ -1,5 +1,27 @@
 module SpreadsheetBuilder
   class CssParser
+
+    def self.px_from_input(val, base = :width)
+      case val
+      when /%$/
+        val.to_f / 100 * { width: 1024, height: 16 }[base]
+      when /px$/
+        val.to_f
+      when /cm$/
+        val.to_f * 37.795275591
+      when /em$/
+        val.to_f * 16
+      when /pt$/
+        val.to_f * 16 / 12
+      else 
+        nil
+      end
+    end
+
+    def self.pt_from_input(val, base = :width)
+      px_from_input(val, base) * 12 / 16
+    end
+
     attr_reader :cache, :rules
 
     def initialize
@@ -13,13 +35,13 @@ module SpreadsheetBuilder
     end
 
     def format_from_node(node)
-      format_from_klass_tree(klass_tree_from_node(node))
+      format_from_klass_tree(klass_tree_from_node(node), node)
     end
 
     private
     def accepted_keys
       # TODO Keep these in a config
-      keys = %w{ color background-color font-size font-weight text-align border border-width border-style border-color }
+      keys = %w{ color background-color font-size font-weight text-align border border-width border-style border-color height width }
       dirs = %w{ top bottom left right }
       types = %w{ width style color }
       dirs.each do |dir|
@@ -34,12 +56,15 @@ module SpreadsheetBuilder
       tree.map { |n, t| klass_node_from_node(n) }
     end
 
-    def format_from_klass_tree(klass)
+    def format_from_klass_tree(klass, node)
+      # klass is uniq to each node (because of first-child, nth-child, etc)
+      # so caching with the class is useless
+      # TODO find a better way to cache that works
       if @cache[klass]
         format = @cache[klass]
       else
         declarations = declarations_from_klass_tree(klass)
-        format = format_from_declarations(declarations)
+        format = format_from_declarations(declarations, node)
         @cache[klass] = format
       end
 
@@ -93,8 +118,14 @@ module SpreadsheetBuilder
       f || {}
     end
 
-    def format_from_declarations(declarations)
-      declarations.delete_if { |_,v| v.nil? || v.empty? }
+    def format_from_declarations(declarations, node)
+      denied = Hash.new { |h,k| h[k] = [] }.merge(
+        "table" => %w{ width height },
+        "tr"    => %w{ width }
+      )
+      declarations.delete_if { |k,v| 
+        v.nil? || v.empty? || denied[node.name].include?(k) 
+      }
 
       declarations.each_with_object({}) { |(k,v), format|
         format.merge!(translate_declaration(k,v[:value]))
@@ -115,7 +146,7 @@ module SpreadsheetBuilder
     def reset_parser
       parser = CssParser::Parser.new
       # TODO load these files from a config
-      parser.load_uri!("file://#{Dir.pwd}/test.css")
+      parser.load_uri!("file://#{Dir.pwd}/test2.css")
       # TODO or even better parse the html doc for spreadsheet links 
       # and load those
       #parser.load_uri!("file://#{Dir.pwd}/test2.css")
