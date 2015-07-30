@@ -19,14 +19,12 @@ module SpreadsheetBuilder
     end
 
     def build(force_level = :none)
-      SpreadsheetBuilder.from_data(to_data)
+      SpreadsheetBuilder.from_data(to_data(force_level))
     end
 
     # TODO clean this up
     def to_data(force_level = :none)
-      reset_css_parser if force_level == :parser
-      reset_css_cache  if force_level == :cache
-      reset_css_rules  if force_level == :rules
+      @css.reset(force_level)
 
       # need to check for attributes colspan and row span
       cells       = [] 

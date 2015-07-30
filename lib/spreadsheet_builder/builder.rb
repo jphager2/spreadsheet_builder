@@ -166,16 +166,14 @@ module SpreadsheetBuilder
           if !current || current < Integer(cell[:format][:height])
             @row_heights[index][row] = Integer(cell[:format][:height])
           end
-          height = cell[:format].delete(:height)
-          puts "row height set! => row: #{row}, height: #{height}"
+          cell[:format].delete(:height)
         end
         if cell[:format].keys.include?(:width)
           current = @col_widths[index][col]
           if !current || current < Integer(cell[:format][:width])
             @col_widths[index][col] = Integer(cell[:format][:width])
           end
-          width = cell[:format].delete(:width)
-          puts "col_width set! => col: #{col}, width: #{width}"
+          cell[:format].delete(:width)
         end
       end
     end
