@@ -35,6 +35,9 @@ module SpreadsheetBuilder
     end
 
     def format_from_klass_tree(klass)
+      # klass is uniq to each node (because of first-child, nth-child, etc)
+      # so caching with the class is useless
+      # TODO find a better way to cache that works
       if @cache[klass]
         format = @cache[klass]
       else
