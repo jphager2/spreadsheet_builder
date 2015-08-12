@@ -23,8 +23,11 @@ module SpreadsheetBuilder
     end
 
     attr_reader :cache, :rules
+    attr_accessor :load_paths
 
-    def initialize
+    def initialize(load_paths = [])
+      @load_paths = load_paths
+
       reset
     end
 
@@ -148,11 +151,7 @@ module SpreadsheetBuilder
 
     def reset_parser
       parser = CssParser::Parser.new
-      # TODO load these files from a config
-      parser.load_uri!("file://#{Dir.pwd}/test2.css")
-      # TODO or even better parse the html doc for spreadsheet links 
-      # and load those
-      #parser.load_uri!("file://#{Dir.pwd}/test2.css")
+      load_paths.each { |uri| parser.load_uri!(uri) }
 
       # Explicity reset rules to avoid infinite loop or bad data
       reset_rules(parser)
