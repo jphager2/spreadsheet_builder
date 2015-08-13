@@ -13,9 +13,10 @@ module SpreadsheetBuilder
       new(html)
     end
 
-    def initialize(html)
+    def initialize(html, *css_paths)
+      # TODO merge inline style tags into CssParser
       @html = html
-      @css  = SpreadsheetBuilder::CssParser.new
+      @css  = SpreadsheetBuilder::CssParser.new(css_paths)
     end
 
     def build(force_level = :none)
@@ -38,11 +39,15 @@ module SpreadsheetBuilder
       # ignoring specified formats for anything other than table tr td/th
       tb_format = @css.format_from_node(tb) 
 
-      doc.css('tr').each_with_index do |tr, row|
+      row = 0
+      doc.css('tr').each do |tr|
         tr_format = tb_format.merge(@css.format_from_node(tr))
 
+        increment = true
         tr.css('td, th').each_with_index do |td, col|
            
+          # TODO Do we really need rowheight and colwidth now that there
+          # is css parsing?
           rowheight = td.attributes["rowheight"]
           colwidth  = td.attributes["colwidth"]
           rowspan   = td.attributes["rowspan"]
@@ -60,18 +65,22 @@ module SpreadsheetBuilder
             }
           end
           if rowspan
-            (1..rowspan-1).each {|t| 
+            (1..rowspan-2).each {|t| 
               add_td_to_cells(row+t, col, td, tr_format, cells)
             }
+            increment = false
           end
           if colspan || rowspan
             merges << [
-              row, col, row + (rowspan || 1)-1, col + (colspan || 1)-1
+              row, col, row + (rowspan || 2)-2, col + (colspan || 1)-1
             ]
           end
         end
+
+        row += 1 if increment
       end
 
+      puts cells.inspect
       { cells: cells, merges: { 0 => merges } }
     end
 
@@ -82,11 +91,11 @@ module SpreadsheetBuilder
       unless found 
         td_format = tr_format.merge(@css.format_from_node(td))
         cells << { 
-          row: row, 
-          col: col, 
-          value: td.text.strip, 
+          row:    row, 
+          col:    col, 
+          value:  td.text.strip, 
           format: td_format, 
-          path: td.css_path 
+          path:   td.css_path 
         } 
       else
         add_td_to_cells(row, col + 1, td, tr_format, cells)

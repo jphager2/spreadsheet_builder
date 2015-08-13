@@ -24,7 +24,9 @@ module SpreadsheetBuilder
 
     attr_reader :cache, :rules
 
-    def initialize
+    def initialize(load_paths = [])
+      @load_paths = load_paths
+
       reset
     end
 
@@ -35,7 +37,18 @@ module SpreadsheetBuilder
     end
 
     def format_from_node(node)
-      format_from_klass_tree(klass_tree_from_node(node), node)
+      formats = []
+      formats << format_from_klass_tree(klass_tree_from_node(node), node)
+
+      if node.attributes["style"]
+        declarations = node.attributes["style"].value.split(';').map { |line| 
+          k, v = line.split(':')
+          [k, { value: v }]
+        }
+        formats << format_from_declarations(declarations, node)
+      end
+
+      formats.inject(&:merge)
     end
 
     private
@@ -149,10 +162,13 @@ module SpreadsheetBuilder
     def reset_parser
       parser = CssParser::Parser.new
       # TODO load these files from a config
-      parser.load_uri!("file://#{Dir.pwd}/test2.css")
+      #parser.load_uri!("file://#{Dir.pwd}/test2.css")
       # TODO or even better parse the html doc for spreadsheet links 
       # and load those
       #parser.load_uri!("file://#{Dir.pwd}/test2.css")
+      @load_paths.each do |uri|
+        parser.load_uri!(uri)
+      end
 
       # Explicity reset rules to avoid infinite loop or bad data
       reset_rules(parser)
