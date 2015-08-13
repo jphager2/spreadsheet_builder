@@ -13,31 +13,41 @@ module SpreadsheetBuilder
       new(html)
     end
 
+    attr_reader :doc
     def initialize(html, *css_paths)
       # TODO merge inline style tags into CssParser
+      @css_load_paths = css_paths
       @html = html
-      @css  = SpreadsheetBuilder::CssParser.new(css_paths)
+      @doc  = Nokogiri::HTML(@html) 
     end
 
     def build(force_level = :none)
       SpreadsheetBuilder.from_data(to_data(force_level))
     end
 
+    def css
+      return @css  if @css
+
+      css  = @doc.css('link[rel=stylesheet]').map { |l| 
+        href = l["href"].sub(/^\/+/, '')
+        "#{@full_url}/#{href}"
+      }
+      @css = SpreadsheetBuilder::CssParser.new(css + @css_load_paths)
+    end
+
     # TODO clean this up
     def to_data(force_level = :none)
-      @css.reset(force_level)
-
-      # need to check for attributes colspan and row span
       cells       = [] 
       merges      = []
       col_widths  = {}
       row_heights = {}
 
-      doc = Nokogiri::HTML(@html)
+      css.reset(force_level)
+
       tb  = doc.css('table').first 
 
       # ignoring specified formats for anything other than table tr td/th
-      tb_format = @css.format_from_node(tb) 
+      tb_format = css.format_from_node(tb) 
 
       row = 0
       doc.css('tr').each do |tr|
@@ -85,11 +95,12 @@ module SpreadsheetBuilder
     end
 
     private
+
     # TODO Document
     def add_td_to_cells(row, col, td, tr_format, cells)
       found = cells.find { |cell| cell[:row] == row && cell[:col] == col}
       unless found 
-        td_format = tr_format.merge(@css.format_from_node(td))
+        td_format = tr_format.merge(css.format_from_node(td))
         cells << { 
           row:    row, 
           col:    col, 

@@ -23,6 +23,7 @@ module SpreadsheetBuilder
     end
 
     attr_reader :cache, :rules
+    attr_accessor :load_paths
 
     def initialize(load_paths = [])
       @load_paths = load_paths
