@@ -28,11 +28,14 @@ module SpreadsheetBuilder
     def css
       return @css  if @css
 
-      css  = @doc.css('link[rel=stylesheet]').map { |l| 
+      @doc.css('link[rel=stylesheet]').map { |l| 
         href = l["href"].sub(/^\/+/, '')
-        "#{@full_url}/#{href}"
+        # This will have to be updated later with a host
+        @css_load_paths << "#{href}" 
       }
-      @css = SpreadsheetBuilder::CssParser.new(css + @css_load_paths)
+      #@css = SpreadsheetBuilder::CssParser.new(@css_load_paths)
+      # Figure out the best way to load this
+      @css = SpreadsheetBuilder::CssParser.new([])
     end
 
     # TODO clean this up

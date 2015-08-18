@@ -162,13 +162,13 @@ module SpreadsheetBuilder
 
     def reset_parser
       parser = CssParser::Parser.new
-      # TODO load these files from a config
-      #parser.load_uri!("file://#{Dir.pwd}/test2.css")
-      # TODO or even better parse the html doc for spreadsheet links 
-      # and load those
-      #parser.load_uri!("file://#{Dir.pwd}/test2.css")
       @load_paths.each do |uri|
-        parser.load_uri!(uri)
+        begin
+          parser.load_uri!(uri)
+        rescue CssParser::RemoteFileError => error
+          error.message = "Failed to load #{uri}"
+          raise error 
+        end
       end
 
       # Explicity reset rules to avoid infinite loop or bad data
