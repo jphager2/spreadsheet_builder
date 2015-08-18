@@ -38,7 +38,18 @@ module SpreadsheetBuilder
     end
 
     def format_from_node(node)
-      format_from_klass_tree(klass_tree_from_node(node), node)
+      formats = []
+      formats << format_from_klass_tree(klass_tree_from_node(node), node)
+
+      if node.attributes["style"]
+        declarations = node.attributes["style"].value.split(';').map { |line| 
+          k, v = line.split(':')
+          [k, { value: v }]
+        }
+        formats << format_from_declarations(declarations, node)
+      end
+
+      formats.inject(&:merge)
     end
 
     private
@@ -151,7 +162,14 @@ module SpreadsheetBuilder
 
     def reset_parser
       parser = CssParser::Parser.new
-      load_paths.each { |uri| parser.load_uri!(uri) }
+      @load_paths.each do |uri|
+        begin
+          parser.load_uri!(uri)
+        rescue CssParser::RemoteFileError => error
+          error.message = "Failed to load #{uri}"
+          raise error 
+        end
+      end
 
       # Explicity reset rules to avoid infinite loop or bad data
       reset_rules(parser)
