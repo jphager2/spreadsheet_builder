@@ -7,7 +7,7 @@ files.push('LICENSE')
 
 Gem::Specification.new do |s|
   s.name        = 'spreadsheet_builder'
-  s.version     = '0.0.1'
+  s.version     = '0.0.2'
 	s.date        = "#{Time.now.strftime("%Y-%m-%d")}"
 	s.homepage    = 'https://github.com/jphager2/spreadsheet_builder'
   s.summary     = 'build xls spreadsheets'
